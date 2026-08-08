@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  gemma:
+    image: vllm/vllm-openai:v0.6.3
+    container_name: meeting-ai-gemma
+    restart: unless-stopped
+    runtime: nvidia
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+    ports:
+      - "127.0.0.1:${VLLM_PORT}:8000"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    command: >
+      --model ${GEMMA_MODEL}
+      --gpu-memory-utilization ${VLLM_GPU_MEMORY_UTILIZATION}
+      --max-model-len ${VLLM_MAX_MODEL_LEN}
+      --max-num-seqs ${VLLM_MAX_NUM_SEQS}
+      --dtype half
+      --trust-remote-code
+      --host 0.0.0.0
+      --port 8000
+      --disable-log-requests
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  audio:
+    build:
+      context: ./audio
+      dockerfile: Dockerfile
+    container_name: meeting-ai-audio
+    restart: unless-stopped
+    runtime: nvidia
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+      - WHISPER_MODEL=${WHISPER_MODEL}
+      - DIARIZATION_MODEL=${DIARIZATION_MODEL}
+      - WHISPER_DEVICE=cuda
+      - WHISPER_COMPUTE_TYPE=float16
+      - DIARIZATION_DEVICE=cuda
+      - MAX_AUDIO_FILE_SIZE_MB=${MAX_AUDIO_FILE_SIZE_MB}
+      - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+    ports:
+      - "127.0.0.1:${AUDIO_PORT}:8001"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - ./audio-files:/app/audio-files:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    depends_on:
+      - gemma
+
+volumes:
+  hf_cache:
+    driver: local
