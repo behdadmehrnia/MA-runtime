@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# ML/Cache
+audio-files/
+/root/.cache/
+~/.cache/
+hf_cache/
+torch_cache/
+*.bin
+*.safetensors
+
+# Model weights (large files)
+*.pt
+*.pth
+*.onnx
+
+# Temp files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Audio processing
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg

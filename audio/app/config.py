@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
-from typing import Optional
+from typing import Optional, Literal
 import os
 
 
@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     max_audio_file_size_mb: int = Field(default=100, alias="MAX_AUDIO_FILE_SIZE_MB")
     max_concurrent_jobs: int = Field(default=1, alias="MAX_CONCURRENT_JOBS")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+    model_mode: Literal["both", "whisper", "diarization"] = Field(default="both", alias="MODEL_MODE")
 
     class Config:
         env_file = ".env"
